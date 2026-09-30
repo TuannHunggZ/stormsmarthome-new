@@ -22,7 +22,17 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - ./postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./postgresql/dump/iotdata.dump:/backup/iotdata.dump
+      - ./postgresql/dump/restore.sh:/docker-entrypoint-initdb.d/restore.sh
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "psql -U postgres -d iotdata -tAc \"SELECT EXISTS (SELECT 1 FROM plug_forecast_expected LIMIT 1)\" | grep -q t"
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 60
 
   redis:
     image: redis:7.4-alpine
@@ -87,6 +97,21 @@ services:
       - ./storm-config/supervisor.yaml:/conf/storm.yaml
     networks:
       storm_network:
+
+  grafana:
+    image: grafana/grafana:13.0.3
+    container_name: grafana
+    hostname: grafana
+    ports:
+      - 3000:3000
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      storm_network:
+    depends_on:
+      postgresql:
+        condition: service_healthy
 
   webapp:
     build:
