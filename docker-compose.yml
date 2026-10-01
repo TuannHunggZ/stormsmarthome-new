@@ -28,11 +28,11 @@ services:
       test:
         [
           "CMD-SHELL",
-          "psql -U postgres -d iotdata -tAc \"SELECT EXISTS (SELECT 1 FROM plug_forecast_expected LIMIT 1)\" | grep -q t"
+          "psql -U postgres -d iotdata -tAc \"SELECT EXISTS (SELECT 1 FROM plug_data_forecast_expected LIMIT 1)\" | grep -q t"
         ]
-      interval: 10s
-      timeout: 10s
-      retries: 60
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
   redis:
     image: redis:7.4-alpine
