@@ -73,27 +73,30 @@ public class DB_store {
      * @return true when a persistence worker was started.
      */
     public static boolean pushHouseData(Stack<HouseData> dataList, File locker) {
-        if (locker.exists() || dataList.isEmpty()) {
+        try {
+            if (locker.exists() || dataList.isEmpty()) {
+                return false;
+            } else {
+                new HouseData2DB(dataList, locker).start();
+                return true;
+            }
+        } catch (Exception exception) {
+            LOGGER.error("Failed to start house data persistence worker", exception);
             return false;
         }
-		new HouseData2DB(dataList, locker).start();
-		return true;
 	}
 
 	public static HashMap<String, PlugData> queryBefore(PlugData data) {
             HashMap<String, PlugData> result = new HashMap<String, PlugData>();
-            String sql = "SELECT house_id, household_id, plug_id, year, month, day, slice_gap, slice_index, avg "
-                + "FROM plug_data WHERE house_id=? AND household_id=? AND plug_id=? AND year=? AND month=? "
-                + "AND day=? AND slice_gap=? AND slice_index<? ORDER BY slice_index";
+            String sql = "SELECT * "
+                + "FROM plug_data WHERE house_id=? AND household_id=? AND plug_id=? "
+                + "AND slice_gap=? AND slice_index=?";
             try (Connection connection = initConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setInt(1, data.getHouseId());
                 statement.setInt(2, data.getHouseholdId());
                 statement.setInt(3, data.getPlugId());
-                statement.setString(4, data.getYear());
-                statement.setString(5, data.getMonth());
-                statement.setString(6, data.getDay());
-                statement.setInt(7, data.getSliceGap());
-                statement.setInt(8, data.getSliceIndex());
+                statement.setInt(4, data.getSliceGap());
+                statement.setInt(5, data.getSliceIndex() + 2);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
                         PlugData previous = new PlugData(
@@ -114,15 +117,12 @@ public class DB_store {
 
     	public static HashMap<String, HouseData> queryBefore(HouseData data) {
             HashMap<String, HouseData> result = new HashMap<String, HouseData>();
-            String sql = "SELECT house_id, year, month, day, slice_gap, slice_index, avg FROM house_data "
-                + "WHERE house_id=? AND year=? AND month=? AND day=? AND slice_gap=? AND slice_index<? ORDER BY slice_index";
+            String sql = "SELECT * FROM house_data "
+                + "WHERE house_id=? AND slice_gap=? AND slice_index=?";
             try (Connection connection = initConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setInt(1, data.getHouseId());
-                statement.setString(2, data.getYear());
-                statement.setString(3, data.getMonth());
-                statement.setString(4, data.getDay());
-                statement.setInt(5, data.getSliceGap());
-                statement.setInt(6, data.getSliceIndex());
+                statement.setInt(2, data.getSliceGap());
+                statement.setInt(3, data.getSliceIndex() + 2);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
                         HouseData previous = new HouseData(
@@ -140,15 +140,26 @@ public class DB_store {
         }
 
     	public static boolean pushPlugDataForecast(Stack<PlugData> dataList, File locker) {
-            if (locker.exists() || dataList.isEmpty()) {
+            try{
+                if (locker.exists() || dataList.isEmpty()) {
+                    return false;
+                } else {
+                    new PlugForecast2DB(dataList, locker).start();
+                    return true;
+                }
+            } catch (Exception exception) {
+                LOGGER.error("Failed to start plug forecast persistence worker", exception);
                 return false;
             }
-            new PlugForecast2DB(dataList, locker).start();
-            return true;
         }
 
     	public static boolean pushHouseDataForecast(Stack<HouseData> dataList, File locker) {
-            if (locker.exists() || dataList.isEmpty()) {
+            try {
+                if (locker.exists() || dataList.isEmpty()) {
+                    return false;
+                }
+            } catch (Exception exception) {
+                LOGGER.error("Failed to start house forecast persistence worker", exception);
                 return false;
             }
             new HouseForecast2DB(dataList, locker).start();
@@ -261,6 +272,7 @@ class HouseData2DB extends Thread {
                 }
                 statement.executeBatch();
                 connection.commit();
+
             }
             locker.delete();
         } catch (Exception exception) {

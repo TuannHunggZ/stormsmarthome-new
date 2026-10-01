@@ -2,6 +2,7 @@ package com.storm.iotdata.storm;
 
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Map;
 
@@ -59,12 +60,12 @@ public class Bolt_split extends BaseRichBolt {
                 Long    timestamp   = tuple.getLongByField("timestamp");
                 Double  value       = tuple.getDoubleByField("value");
 
-                ZonedDateTime dateTime = Instant.ofEpochSecond(timestamp).atZone(ZoneId.of("Europe/Berlin"));
+                ZonedDateTime dateTime = Instant.ofEpochSecond(timestamp).atZone(ZoneOffset.UTC);
 
                 String year = String.valueOf(dateTime.getYear());
                 String month = String.format("%02d", dateTime.getMonthValue());
                 String day = String.format("%02d", dateTime.getDayOfMonth());
-                long time = dateTime.toLocalTime().toNanoOfDay() / 1_000_000;
+                Long time = (dateTime.toInstant().toEpochMilli() % 86400000);
 
                 for (Integer window : StormConfig.getTimeSliceMinutes()) {
                     int sliceIndex = (int) Math.floorDiv(time, (window * 60000));
