@@ -23,11 +23,6 @@ public class MainTopo {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MainTopo.class);
 
-    /**
-     * Creates the spout, split bolt and one average bolt per configured window.
-     *
-     * @param args Command-line arguments.
-     */
     public static void main(String[] args) throws Exception {
         TopologyBuilder builder = new TopologyBuilder();
 

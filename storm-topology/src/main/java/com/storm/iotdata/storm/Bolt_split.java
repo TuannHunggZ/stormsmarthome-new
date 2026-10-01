@@ -64,7 +64,7 @@ public class Bolt_split extends BaseRichBolt {
                 String year = String.valueOf(dateTime.getYear());
                 String month = String.format("%02d", dateTime.getMonthValue());
                 String day = String.format("%02d", dateTime.getDayOfMonth());
-                Long time = (dateTime.toInstant().toEpochMilli() % 86400000);
+                long time = dateTime.toLocalTime().toNanoOfDay() / 1_000_000;
 
                 for (Integer window : StormConfig.getTimeSliceMinutes()) {
                     int sliceIndex = (int) Math.floorDiv(time, (window * 60000));
