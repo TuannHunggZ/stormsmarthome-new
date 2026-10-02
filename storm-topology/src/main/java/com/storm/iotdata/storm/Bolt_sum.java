@@ -149,6 +149,7 @@ public class Bolt_sum extends BaseRichBolt {
         for (Map<Integer, Map<String, PlugData>> houseDataBySlice : plugDataBySlice.values()) {
             for (Map.Entry<Integer, Map<String, PlugData>> houseEntry : houseDataBySlice.entrySet()) {
                 HouseData houseData = createHouseData(houseEntry.getKey(), houseEntry.getValue());
+                collector.emit("data", tuple, new Values(HouseData.class.getSimpleName(), houseData));
                 houseDataToSave.push(houseData);
             }
         }

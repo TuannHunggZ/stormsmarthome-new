@@ -132,27 +132,17 @@ public class Bolt_average extends BaseRichBolt {
         }
 
         Stack<PlugData> needSave = new Stack<PlugData>();
-        Stack<String> needClean = new Stack<String>();
 
-        for (String key : plugDataList.keySet()) {
-            PlugData data = plugDataList.get(key);
-            if (!data.isSaved()) {
-                collector.emit("data", tuple, new Values(data.getClass().getSimpleName(), data));
-                needSave.push(data);
-            } else if (data.isSaved()) {
-                needClean.push(key);
-            }
+        for (PlugData data : plugDataList.values()) {
+            collector.emit("data", tuple, new Values(data.getClass().getSimpleName(), data));
+            needSave.push(data);
         }
 
         if (DB_store.pushPlugData(needSave, new File("./tmp/plugData2db-" + windowSizeMinutes + ".lck"))) {
             for (PlugData plugData : needSave) {
                 updatePlugAnomaly(plugData, triggerTimestampMillis);
-                plugDataList.get(plugData.getUniqueId()).save();
             }
-        }
-
-        for (String key : needClean) {
-            plugDataList.remove(key);
+            plugDataList.clear();
         }
 
         collector.emit("punctuation-" + windowSizeMinutes + "m", tuple, new Values(windowSizeMinutes, triggerTimestampMillis));

@@ -34,15 +34,15 @@ public class MainTopo {
         for (Integer windowSize : StormConfig.getTimeSliceMinutes()) {
             splitBolt.shuffleGrouping("spout-data", "punctuation-" + windowSize + "m");
 
-            String boltId = "bolt-average-" + windowSize + "m";
-            BoltDeclarer boltDeclarer = builder.setBolt(boltId, new Bolt_average(windowSize), 1);
+            String averageBoltId = "bolt-average-" + windowSize + "m";
+            BoltDeclarer boltDeclarer = builder.setBolt(averageBoltId, new Bolt_average(windowSize), 1);
             boltDeclarer.shuffleGrouping("bolt-split", "window-" + windowSize + "m");
             boltDeclarer.shuffleGrouping("bolt-split", "punctuation-" + windowSize + "m");
 
             String sumBoltId = "bolt-sum-" + windowSize + "m";
             BoltDeclarer sumBoltDeclarer = builder.setBolt(sumBoltId, new Bolt_sum(windowSize), 1);
-            sumBoltDeclarer.shuffleGrouping(boltId, "data");
-            sumBoltDeclarer.shuffleGrouping(boltId, "punctuation-" + windowSize + "m");
+            sumBoltDeclarer.shuffleGrouping(averageBoltId, "data");
+            sumBoltDeclarer.shuffleGrouping(averageBoltId, "punctuation-" + windowSize + "m");
 
             String forecastBoltId = "bolt-forecast-" + windowSize + "m";
             BoltDeclarer forecastBoltDeclarer = builder.setBolt(
@@ -50,7 +50,7 @@ public class MainTopo {
                 new Bolt_forecast(windowSize),
                 1
             );
-            forecastBoltDeclarer.shuffleGrouping(boltId, "data");
+            forecastBoltDeclarer.shuffleGrouping(averageBoltId, "data");
             forecastBoltDeclarer.shuffleGrouping(sumBoltId, "data");
             forecastBoltDeclarer.shuffleGrouping(sumBoltId, "punctuation-" + windowSize + "m");
         }
