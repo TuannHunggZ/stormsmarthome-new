@@ -370,7 +370,7 @@ public class Spout_data extends BaseRichSpout {
 		String punctuationStreamId = punctuationStreamIds.get(event.windowSizeMinutes);
 		collector.emit(
 			punctuationStreamId,
-			new Values(event.windowSizeMinutes, event.timestamp, System.currentTimeMillis()),
+			new Values(event.windowSizeMinutes, System.currentTimeMillis()),
 			punctuationStreamId + "-" + event.timestamp
 		);
 		LOGGER.info(
