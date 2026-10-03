@@ -131,7 +131,7 @@ public class Bolt_sum extends BaseRichBolt {
             new HashMap<String, PlugData>()
         );
 
-        plugDataByHouse.put(String.valueOf(plugData.getPlugId()), plugData);
+        plugDataByHouse.put(String.valueOf(plugData.getPlugUniqueId()), plugData);
         houseDataBySlice.put(plugData.getHouseId(), plugDataByHouse);
         plugDataBySlice.put(plugData.getSliceId(), houseDataBySlice);
     }
