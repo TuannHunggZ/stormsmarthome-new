@@ -7,10 +7,14 @@ public class HouseData extends TimeSlice {
 
     private static final long serialVersionUID = 1L;
 
-    private final Integer houseId;
+    private Integer houseId;
     private Double value;
     public Double predictionLatencyMillis = 0.0d;
     private Boolean saved;
+
+    public HouseData() {
+        super();
+    }
 
     public HouseData(Integer houseId, String year, String month, String day, Integer sliceIndex, Integer sliceGap, Double value) {
         super(year, month, day, sliceIndex, sliceGap);
